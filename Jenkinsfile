@@ -5,7 +5,7 @@ pipeline {
 
         stage('Clone Repo') {
             steps {
-                git 'https://github.com/YOUR_USERNAME/gesture-sos-system.git'
+                git 'https://github.com/PriyankaB828/gesture-sos-system.git'
             }
         }
 
