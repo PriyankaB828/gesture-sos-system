@@ -3,29 +3,23 @@ pipeline {
 
     stages {
 
-        stage('Checkout Code') {
+        stage('Clone Repo') {
             steps {
-                git 'https://github.com/PriyankaB828/gesture-sos-system.git'
+                git 'https://github.com/YOUR_USERNAME/gesture-sos-system.git'
             }
         }
 
-        stage('Build') {
+        stage('Build Docker Image') {
             steps {
-                echo 'Building the project...'
-                sh 'ls'
+                sh 'docker build -t gesture-sos .'
             }
         }
 
-        stage('Test') {
+        stage('Run Container') {
             steps {
-                echo 'Running tests...'
+                sh 'docker run -d -p 8085:8080 gesture-sos'
             }
         }
 
-        stage('Deploy') {
-            steps {
-                echo 'Deploying application...'
-            }
-        }
     }
 }
