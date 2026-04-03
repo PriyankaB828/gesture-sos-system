@@ -3,12 +3,6 @@ pipeline {
 
     stages {
 
-        stage('Clone Repo') {
-            steps {
-                git 'https://github.com/PriyankaB828/gesture-sos-system.git'
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t gesture-sos .'
