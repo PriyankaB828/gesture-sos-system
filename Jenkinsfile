@@ -11,7 +11,7 @@ pipeline {
 
         stage('Run Container') {
             steps {
-                sh 'docker run -d -p 8085:8080 gesture-sos'
+                sh 'docker run -d -p 8085:8080 --name gesture-sos-container gesture-sos || true'
             }
         }
 
