@@ -3,11 +3,6 @@ pipeline {
 
     stages {
 
-        stage('Clone') {
-            steps {
-                git 'https://github.com/PriyankaB828/gesture-sos-system.git'
-            }
-        }
 
         stage('Build') {
             steps {
