@@ -3,6 +3,12 @@ pipeline {
 
     stages {
 
+        stage('Checkout Code') {
+            steps {
+                git 'https://github.com/PriyankaB828/gesture-sos-system.git'
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t gesture-sos .'
@@ -11,7 +17,7 @@ pipeline {
 
         stage('Run Container') {
             steps {
-                sh 'docker run -d -p 8085:8080 --name gesture-sos-container gesture-sos || true'
+                sh 'docker run -d -p 8000:8000 gesture-sos'
             }
         }
 
