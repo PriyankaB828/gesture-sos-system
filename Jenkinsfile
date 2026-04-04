@@ -4,13 +4,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/PriyankaB828/gesture-sos-system.git'
-            }
-        }
-
-        stage('Build Maven Project') {
-            steps {
-                sh 'mvn clean package -DskipTests'
+                git branch: 'main', url: 'https://github.com/PriyankaB828/gesture-sos-system.git'
             }
         }
 
@@ -22,7 +16,9 @@ pipeline {
 
         stage('Run Container') {
             steps {
-                sh 'docker run -d -p 8080:8080 --name gesture-sos-container gesture-sos'
+                sh 'docker stop gesture-sos-container || true'
+                sh 'docker rm gesture-sos-container || true'
+                sh 'docker run -d -p 9090:8080 --name gesture-sos-container gesture-sos'
             }
         }
     }
