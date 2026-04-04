@@ -5,7 +5,7 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/PriyankaB828/gesture-sos-system.git'
+                git branch: 'main', url: 'https://github.com/PriyankaB828/gesture-sos-system.git'
             }
         }
 
