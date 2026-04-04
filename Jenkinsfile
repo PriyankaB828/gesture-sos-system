@@ -8,6 +8,12 @@ pipeline {
             }
         }
 
+        stage('Build Maven Project') {
+            steps {
+                sh 'mvn clean package -DskipTests'
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t gesture-sos .'
