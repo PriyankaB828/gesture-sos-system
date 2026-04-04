@@ -4,434 +4,88 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Gesture SOS System</title>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #f5f5f3;
-      color: #1a1a1a;
-      min-height: 100vh;
-    }
-
-    .page {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 2rem 1rem;
-    }
-
-    .header {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-
-    .header h1 {
-      font-size: 26px;
-      font-weight: 600;
-      color: #1a1a1a;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .header p {
-      font-size: 15px;
-      color: #666;
-      margin-top: 8px;
-    }
-
-    .badge {
-      display: inline-block;
-      background: #E6F1FB;
-      color: #185FA5;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 3px 10px;
-      border-radius: 20px;
-      margin-top: 8px;
-      letter-spacing: 0.04em;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.25rem;
-      margin-bottom: 1.25rem;
-    }
-
-    .card {
-      background: #fff;
-      border: 1px solid #e5e5e3;
-      border-radius: 14px;
-      padding: 1.5rem;
-    }
-
-    .card-title {
-      font-size: 11px;
-      font-weight: 600;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      margin-bottom: 1rem;
-    }
-
-    video {
-      width: 100%;
-      border-radius: 10px;
-      background: #000;
-      aspect-ratio: 4/3;
-      object-fit: cover;
-      display: none;
-    }
-
-    .video-placeholder {
-      width: 100%;
-      aspect-ratio: 4/3;
-      background: #f5f5f3;
-      border-radius: 10px;
-      border: 1.5px dashed #d0d0cc;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      color: #888;
-      font-size: 13px;
-    }
-
-    .cam-icon {
-      width: 48px;
-      height: 48px;
-      background: #e5e5e3;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .btn {
-      width: 100%;
-      padding: 11px;
-      border-radius: 10px;
-      border: 1px solid #d0d0cc;
-      background: transparent;
-      color: #1a1a1a;
-      font-size: 14px;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: background 0.15s;
-      font-weight: 500;
-    }
-
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f3; color: #1a1a1a; min-height: 100vh; }
+    .page { max-width: 900px; margin: 0 auto; padding: 2rem 1rem; }
+    .header { text-align: center; margin-bottom: 2rem; }
+    .header h1 { font-size: 26px; font-weight: 600; color: #1a1a1a; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .header p { font-size: 15px; color: #666; margin-top: 8px; }
+    .badge { display: inline-block; background: #E6F1FB; color: #185FA5; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; margin-top: 8px; letter-spacing: 0.04em; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
+    .card { background: #fff; border: 1px solid #e5e5e3; border-radius: 14px; padding: 1.5rem; }
+    .card-title { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 1rem; }
+    .video-wrapper { position: relative; width: 100%; aspect-ratio: 4/3; border-radius: 10px; overflow: hidden; background: #000; }
+    video { width: 100%; height: 100%; object-fit: cover; display: block; transform: scaleX(-1); }
+    canvas#overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(-1); }
+    .video-placeholder { width: 100%; aspect-ratio: 4/3; background: #f5f5f3; border-radius: 10px; border: 1.5px dashed #d0d0cc; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #888; font-size: 13px; }
+    .detected-badge { margin-top: 10px; padding: 10px 14px; border-radius: 10px; background: #f9f9f7; border: 1px solid #e5e5e3; font-size: 13px; color: #555; text-align: center; min-height: 42px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .detected-badge .gesture-name { font-weight: 700; font-size: 15px; color: #185FA5; }
+    .btn { width: 100%; padding: 11px; border-radius: 10px; border: 1px solid #d0d0cc; background: transparent; color: #1a1a1a; font-size: 14px; cursor: pointer; margin-top: 10px; transition: background 0.15s; font-weight: 500; }
     .btn:hover { background: #f5f5f3; }
-
-    .btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-
-    .btn-primary {
-      background: #185FA5;
-      color: #fff;
-      border-color: #185FA5;
-    }
-
-    .btn-primary:hover:not(:disabled) { background: #0C447C; }
-
-    .btn-danger {
-      background: #A32D2D;
-      color: #fff;
-      border-color: #A32D2D;
-      display: none;
-    }
-
+    .btn-primary { background: #185FA5; color: #fff; border-color: #185FA5; }
+    .btn-primary:hover { background: #0C447C; }
+    .btn-danger { background: #A32D2D; color: #fff; border-color: #A32D2D; display: none; }
     .btn-danger:hover { background: #791F1F; }
-
-    .hint-box {
-      margin-top: 12px;
-      padding: 12px;
-      background: #f5f5f3;
-      border-radius: 10px;
-    }
-
-    .hint-box p {
-      font-size: 12px;
-      color: #666;
-      line-height: 1.6;
-    }
-
-    .gesture-buttons {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 1rem;
-    }
-
-    .gesture-btn {
-      padding: 12px 8px;
-      border-radius: 10px;
-      border: 1px solid #e5e5e3;
-      background: #f9f9f7;
-      color: #333;
-      font-size: 14px;
-      cursor: pointer;
-      text-align: center;
-      transition: all 0.15s;
-      font-weight: 500;
-    }
-
-    .gesture-btn:hover {
-      border-color: #185FA5;
-      color: #185FA5;
-      background: #E6F1FB;
-    }
-
-    .gesture-btn.active {
-      background: #E6F1FB;
-      border-color: #185FA5;
-      color: #185FA5;
-    }
-
-    .gesture-btn .emoji {
-      display: block;
-      font-size: 22px;
-      margin-bottom: 4px;
-    }
-
-    hr {
-      border: none;
-      border-top: 1px solid #f0f0ee;
-      margin: 1rem 0;
-    }
-
-    .input-row {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .input-row input {
-      flex: 1;
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 1px solid #d0d0cc;
-      background: #f9f9f7;
-      color: #1a1a1a;
-      font-size: 14px;
-      outline: none;
-      transition: border 0.15s;
-    }
-
-    .input-row input:focus {
-      border-color: #185FA5;
-    }
-
-    .send-btn {
-      padding: 10px 18px;
-      border-radius: 10px;
-      border: 1px solid #185FA5;
-      background: #185FA5;
-      color: #fff;
-      font-size: 14px;
-      cursor: pointer;
-      font-weight: 500;
-      transition: background 0.15s;
-      white-space: nowrap;
-    }
-
+    .gesture-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1rem; }
+    .gesture-btn { padding: 12px 8px; border-radius: 10px; border: 1px solid #e5e5e3; background: #f9f9f7; color: #333; font-size: 14px; cursor: pointer; text-align: center; transition: all 0.15s; font-weight: 500; }
+    .gesture-btn:hover { border-color: #185FA5; color: #185FA5; background: #E6F1FB; }
+    .gesture-btn.active { background: #E6F1FB; border-color: #185FA5; color: #185FA5; }
+    .gesture-btn .emoji { display: block; font-size: 22px; margin-bottom: 4px; }
+    hr { border: none; border-top: 1px solid #f0f0ee; margin: 1rem 0; }
+    .input-row { display: flex; gap: 8px; margin-top: 8px; }
+    .input-row input { flex: 1; padding: 10px 14px; border-radius: 10px; border: 1px solid #d0d0cc; background: #f9f9f7; color: #1a1a1a; font-size: 14px; outline: none; }
+    .input-row input:focus { border-color: #185FA5; }
+    .send-btn { padding: 10px 18px; border-radius: 10px; border: 1px solid #185FA5; background: #185FA5; color: #fff; font-size: 14px; cursor: pointer; font-weight: 500; white-space: nowrap; }
     .send-btn:hover { background: #0C447C; }
-
-    .status-box {
-      min-height: 130px;
-      background: #f9f9f7;
-      border-radius: 10px;
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .status-empty {
-      font-size: 13px;
-      color: #aaa;
-      text-align: center;
-    }
-
-    .status-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #ccc;
-      flex-shrink: 0;
-    }
-
+    .status-box { min-height: 130px; background: #f9f9f7; border-radius: 10px; padding: 1rem; display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+    .status-empty { font-size: 13px; color: #aaa; text-align: center; }
+    .status-row { display: flex; align-items: center; gap: 10px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
     .dot.green { background: #639922; }
     .dot.red { background: #E24B4A; }
     .dot.amber { background: #EF9F27; }
     .dot.blue { background: #185FA5; }
-
-    .status-label {
-      font-size: 12px;
-      color: #888;
-      min-width: 80px;
-    }
-
-    .status-value {
-      font-size: 13px;
-      font-weight: 600;
-      color: #1a1a1a;
-    }
-
-    .loader {
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      border: 2px solid #e0e0e0;
-      border-top-color: #185FA5;
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
-    }
-
+    .status-label { font-size: 12px; color: #888; min-width: 80px; }
+    .status-value { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+    .loader { display: inline-block; width: 14px; height: 14px; border: 2px solid #e0e0e0; border-top-color: #185FA5; border-radius: 50%; animation: spin 0.6s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    .alert-box {
-      border-radius: 12px;
-      padding: 1.25rem 1.5rem;
-      display: none;
-      margin-bottom: 1.25rem;
-    }
-
-    .alert-box.success {
-      background: #EAF3DE;
-      border: 1px solid #97C459;
-    }
-
-    .alert-box.error {
-      background: #FCEBEB;
-      border: 1px solid #F09595;
-    }
-
-    .alert-box.warning {
-      background: #FAEEDA;
-      border: 1px solid #FAC775;
-    }
-
-    .alert-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-
-    .alert-icon {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-
+    .alert-box { border-radius: 12px; padding: 1.25rem 1.5rem; display: none; margin-bottom: 1.25rem; }
+    .alert-box.success { background: #EAF3DE; border: 1px solid #97C459; }
+    .alert-box.error { background: #FCEBEB; border: 1px solid #F09595; }
+    .alert-box.warning { background: #FAEEDA; border: 1px solid #FAC775; }
+    .alert-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .alert-icon { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
     .alert-box.success .alert-icon { background: #639922; color: #fff; }
     .alert-box.error .alert-icon { background: #E24B4A; color: #fff; }
     .alert-box.warning .alert-icon { background: #EF9F27; color: #fff; }
-
-    .alert-title {
-      font-size: 14px;
-      font-weight: 600;
-    }
-
+    .alert-title { font-size: 14px; font-weight: 600; }
     .alert-box.success .alert-title { color: #3B6D11; }
     .alert-box.error .alert-title { color: #A32D2D; }
     .alert-box.warning .alert-title { color: #854F0B; }
-
-    .alert-msg {
-      font-size: 13px;
-      color: #555;
-      line-height: 1.5;
-    }
-
-    .full-card {
-      background: #fff;
-      border: 1px solid #e5e5e3;
-      border-radius: 14px;
-      padding: 1.5rem;
-      margin-bottom: 1.25rem;
-    }
-
-    .pipeline-steps {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      flex-wrap: wrap;
-      margin-top: 1rem;
-    }
-
-    .pipeline-step {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      flex: 1;
-      min-width: 80px;
-    }
-
-    .step-circle {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: #E6F1FB;
-      border: 2px solid #185FA5;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      font-weight: 700;
-      color: #185FA5;
-    }
-
-    .step-label {
-      font-size: 11px;
-      font-weight: 500;
-      color: #555;
-      text-align: center;
-    }
-
-    .step-arrow {
-      font-size: 18px;
-      color: #ccc;
-      flex-shrink: 0;
-      padding: 0 4px;
-      margin-bottom: 18px;
-    }
-
-    @media (max-width: 600px) {
-      .grid { grid-template-columns: 1fr; }
-      .pipeline-steps { gap: 4px; }
-    }
+    .alert-msg { font-size: 13px; color: #555; line-height: 1.5; }
+    .full-card { background: #fff; border: 1px solid #e5e5e3; border-radius: 14px; padding: 1.5rem; margin-bottom: 1.25rem; }
+    .pipeline-steps { display: flex; align-items: center; flex-wrap: wrap; margin-top: 1rem; }
+    .pipeline-step { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; min-width: 80px; }
+    .step-circle { width: 36px; height: 36px; border-radius: 50%; background: #E6F1FB; border: 2px solid #185FA5; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #185FA5; }
+    .step-label { font-size: 11px; font-weight: 500; color: #555; text-align: center; }
+    .step-arrow { font-size: 18px; color: #ccc; flex-shrink: 0; padding: 0 4px; margin-bottom: 18px; }
+    .hint-box { margin-top: 12px; padding: 12px; background: #f5f5f3; border-radius: 10px; }
+    .hint-box p { font-size: 12px; color: #666; line-height: 1.6; }
+    @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
-
 <div class="page">
-
   <div class="header">
     <h1>
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E24B4A" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
       Gesture SOS System
     </h1>
-    <p>Detect emergency gestures via camera or manual input</p>
+    <p>Real-time hand gesture detection using MediaPipe AI</p>
     <span class="badge">LIVE — Connected to localhost:9090</span>
   </div>
 
@@ -444,46 +98,31 @@
   </div>
 
   <div class="grid">
-
     <div class="card">
-      <div class="card-title">Camera input</div>
-      <div id="videoContainer">
-        <div class="video-placeholder" id="placeholder">
-          <div class="cam-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5">
-              <path d="M23 7l-7 5 7 5V7z"/>
-              <rect x="1" y="5" width="15" height="14" rx="2"/>
-            </svg>
-          </div>
-          Camera not started
-        </div>
-        <video id="video" autoplay muted playsinline></video>
+      <div class="card-title">Camera — Real gesture detection</div>
+      <div id="placeholder" class="video-placeholder">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        Camera not started
       </div>
+      <div class="video-wrapper" id="videoWrapper" style="display:none;">
+        <video id="video" autoplay muted playsinline></video>
+        <canvas id="overlay"></canvas>
+      </div>
+      <div class="detected-badge" id="detectedBadge">Show your hand to detect gesture</div>
       <button class="btn btn-primary" id="startBtn" onclick="startCamera()">Start camera</button>
       <button class="btn btn-danger" id="stopBtn" onclick="stopCamera()">Stop camera</button>
       <div class="hint-box">
-        <p>Wave your hand clearly in front of the camera, then click detect to send the gesture to your SOS API.</p>
-        <button class="btn btn-primary" id="detectBtn" disabled onclick="detectFromCamera()" style="margin-top: 10px;">
-          Detect gesture from camera
-        </button>
+        <p>Detection is <strong>automatic</strong> — just show your hand! Try: open palm (wave), thumbs up, fist, or peace sign. API is called automatically on detection.</p>
       </div>
     </div>
 
     <div class="card">
       <div class="card-title">Manual gesture input</div>
       <div class="gesture-buttons">
-        <div class="gesture-btn" onclick="selectGesture('wave', this)">
-          <span class="emoji">👋</span>Wave
-        </div>
-        <div class="gesture-btn" onclick="selectGesture('thumbsup', this)">
-          <span class="emoji">👍</span>Thumbs up
-        </div>
-        <div class="gesture-btn" onclick="selectGesture('fist', this)">
-          <span class="emoji">✊</span>Fist
-        </div>
-        <div class="gesture-btn" onclick="selectGesture('peace', this)">
-          <span class="emoji">✌️</span>Peace
-        </div>
+        <div class="gesture-btn" onclick="selectGesture('wave', this)"><span class="emoji">👋</span>Wave</div>
+        <div class="gesture-btn" onclick="selectGesture('thumbsup', this)"><span class="emoji">👍</span>Thumbs up</div>
+        <div class="gesture-btn" onclick="selectGesture('fist', this)"><span class="emoji">✊</span>Fist</div>
+        <div class="gesture-btn" onclick="selectGesture('peace', this)"><span class="emoji">✌️</span>Peace</div>
       </div>
       <hr>
       <p style="font-size: 12px; color: #888; margin-bottom: 6px;">Or type any gesture manually:</p>
@@ -494,79 +133,157 @@
       <hr>
       <div class="card-title">API response</div>
       <div class="status-box" id="statusBox">
-        <div class="status-empty">No gesture sent yet.<br>Try waving or clicking a gesture above.</div>
+        <div class="status-empty">No gesture sent yet.<br>Show your hand to camera or click a gesture above.</div>
       </div>
     </div>
-
   </div>
 
   <div class="full-card">
     <div class="card-title">CI/CD Pipeline</div>
     <div class="pipeline-steps">
-      <div class="pipeline-step">
-        <div class="step-circle">1</div>
-        <div class="step-label">Code push<br>GitHub</div>
-      </div>
+      <div class="pipeline-step"><div class="step-circle">1</div><div class="step-label">Code push<br>GitHub</div></div>
       <div class="step-arrow">→</div>
-      <div class="pipeline-step">
-        <div class="step-circle">2</div>
-        <div class="step-label">Jenkins<br>triggered</div>
-      </div>
+      <div class="pipeline-step"><div class="step-circle">2</div><div class="step-label">Jenkins<br>triggered</div></div>
       <div class="step-arrow">→</div>
-      <div class="pipeline-step">
-        <div class="step-circle">3</div>
-        <div class="step-label">Maven<br>build</div>
-      </div>
+      <div class="pipeline-step"><div class="step-circle">3</div><div class="step-label">Maven<br>build</div></div>
       <div class="step-arrow">→</div>
-      <div class="pipeline-step">
-        <div class="step-circle">4</div>
-        <div class="step-label">Docker<br>image built</div>
-      </div>
+      <div class="pipeline-step"><div class="step-circle">4</div><div class="step-label">Docker<br>image built</div></div>
       <div class="step-arrow">→</div>
-      <div class="pipeline-step">
-        <div class="step-circle">5</div>
-        <div class="step-label">Container<br>deployed</div>
-      </div>
+      <div class="pipeline-step"><div class="step-circle">5</div><div class="step-label">Container<br>deployed</div></div>
       <div class="step-arrow">→</div>
-      <div class="pipeline-step">
-        <div class="step-circle">6</div>
-        <div class="step-label">API live<br>:9090</div>
-      </div>
+      <div class="pipeline-step"><div class="step-circle">6</div><div class="step-label">API live<br>:9090</div></div>
     </div>
   </div>
-
 </div>
 
 <script>
-  let stream = null;
+  var stream = null;
+  var lastGesture = null;
+  var gestureTimer = null;
+  var hands = null;
+  var mpCamera = null;
 
   function startCamera() {
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(function(s) {
-        stream = s;
-        var video = document.getElementById('video');
-        video.srcObject = s;
-        video.style.display = 'block';
-        document.getElementById('placeholder').style.display = 'none';
-        document.getElementById('startBtn').style.display = 'none';
-        document.getElementById('stopBtn').style.display = 'block';
-        document.getElementById('detectBtn').disabled = false;
-      })
-      .catch(function() {
-        showAlert('warning', 'Camera access denied', 'Please allow camera access in your browser, or use the manual gesture buttons instead.');
-      });
+    document.getElementById('placeholder').style.display = 'none';
+    document.getElementById('videoWrapper').style.display = 'block';
+    document.getElementById('startBtn').style.display = 'none';
+    document.getElementById('stopBtn').style.display = 'block';
+    document.getElementById('detectedBadge').innerHTML = 'Loading AI model...';
+
+    var video = document.getElementById('video');
+    var canvas = document.getElementById('overlay');
+
+    hands = new Hands({
+      locateFile: function(file) {
+        return 'https://cdn.jsdelivr.net/npm/@mediapipe/hands/' + file;
+      }
+    });
+
+    hands.setOptions({
+      maxNumHands: 1,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.7,
+      minTrackingConfidence: 0.7
+    });
+
+    hands.onResults(function(results) {
+      var ctx = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+        var landmarks = results.multiHandLandmarks[0];
+
+        drawConnectors(ctx, landmarks, HAND_CONNECTIONS, { color: '#185FA5', lineWidth: 2 });
+        drawLandmarks(ctx, landmarks, { color: '#E24B4A', lineWidth: 1, radius: 3 });
+
+        var gesture = classifyGesture(landmarks);
+        document.getElementById('detectedBadge').innerHTML =
+          'Detected: <span class="gesture-name">' + gesture.toUpperCase() + '</span>';
+
+        if (gesture !== lastGesture) {
+          lastGesture = gesture;
+          clearTimeout(gestureTimer);
+          gestureTimer = setTimeout(function() {
+            document.getElementById('gestureInput').value = gesture;
+            sendGesture(gesture);
+          }, 1000);
+        }
+      } else {
+        document.getElementById('detectedBadge').innerHTML = 'Show your hand to detect gesture';
+        lastGesture = null;
+        clearTimeout(gestureTimer);
+      }
+    });
+
+    mpCamera = new Camera(video, {
+      onFrame: async function() {
+        await hands.send({ image: video });
+      },
+      width: 640,
+      height: 480
+    });
+
+    mpCamera.start().then(function() {
+      stream = true;
+      document.getElementById('detectedBadge').innerHTML = 'Show your hand to detect gesture';
+    }).catch(function() {
+      showAlert('warning', 'Camera access denied', 'Please allow camera access in your browser settings.');
+      stopCamera();
+    });
   }
 
   function stopCamera() {
-    if (stream) stream.getTracks().forEach(function(t) { t.stop(); });
+    if (mpCamera) { mpCamera.stop(); mpCamera = null; }
+    if (hands) { hands.close(); hands = null; }
     stream = null;
-    var video = document.getElementById('video');
-    video.style.display = 'none';
-    video.srcObject = null;
+    lastGesture = null;
+    clearTimeout(gestureTimer);
+    document.getElementById('videoWrapper').style.display = 'none';
     document.getElementById('placeholder').style.display = 'flex';
     document.getElementById('startBtn').style.display = 'block';
     document.getElementById('stopBtn').style.display = 'none';
-    document.getElementById('detectBtn').disabled = true;
+    document.getElementById('detectedBadge').innerHTML = 'Show your hand to detect gesture';
+  }
+
+  function classifyGesture(landmarks) {
+    var indexTip = landmarks[8];
+    var middleTip = landmarks[12];
+    var ringTip = landmarks[16];
+    var pinkyTip = landmarks[20];
+    var thumbTip = landmarks[4];
+
+    var indexMcp = landmarks[5];
+    var middleMcp = landmarks[9];
+    var ringMcp = landmarks[13];
+    var pinkyMcp = landmarks[17];
+    var thumbMcp = landmarks[2];
+    var wrist = landmarks[0];
+
+    var indexUp = indexTip.y < indexMcp.y;
+    var middleUp = middleTip.y < middleMcp.y;
+    var ringUp = ringTip.y < ringMcp.y;
+    var pinkyUp = pinkyTip.y < pinkyMcp.y;
+    var thumbUp = thumbTip.y < wrist.y - 0.1;
+
+    // Fist — all fingers curled down
+    if (!indexUp && !middleUp && !ringUp && !pinkyUp) {
+      return 'fist';
+    }
+    // Thumbs up — only thumb raised, all others down
+    if (thumbUp && !indexUp && !middleUp && !ringUp && !pinkyUp) {
+      return 'thumbsup';
+    }
+    // Peace — index and middle up only
+    if (indexUp && middleUp && !ringUp && !pinkyUp) {
+      return 'peace';
+    }
+    // Wave — all four fingers up (open palm)
+    if (indexUp && middleUp && ringUp && pinkyUp) {
+      return 'wave';
+    }
+    return 'wave';
   }
 
   function selectGesture(g, el) {
@@ -581,19 +298,6 @@
     if (!val) return;
     sendGesture(val);
   }
-
-  function detectFromCamera() {
-  if (!stream) {
-    showAlert('warning', 'No camera', 'Please start the camera first.');
-    return;
-  }
-  var gestures = ['wave', 'thumbsup', 'fist', 'peace'];
-  var detected = gestures[Math.floor(Math.random() * gestures.length)];
-  document.getElementById('gestureInput').value = detected;
-  showAlert('warning', 'Gesture detected from camera!', 
-    'Detected gesture: "' + detected + '". Sending to API...');
-  setTimeout(function() { sendGesture(detected); }, 1000);
-}
 
   function sendGesture(gesture) {
     var box = document.getElementById('statusBox');
@@ -610,10 +314,11 @@
       box.innerHTML = '';
 
       var rows = [
-        { label: 'Gesture sent', value: gesture, dot: 'blue' },
+        { label: 'Gesture', value: gesture, dot: 'blue' },
         { label: 'Validation', value: data.validation || '-', dot: isValid ? 'green' : 'red' },
         { label: 'Pattern', value: data.pattern || 'None', dot: data.pattern ? 'green' : '' },
-        { label: 'Alert', value: data.alert || 'None', dot: data.alert ? 'red' : '' }
+        { label: 'Alert', value: data.alert || 'None', dot: data.alert ? 'amber' : '' },
+        { label: 'Status', value: data.status || '-', dot: isValid ? 'green' : 'red' }
       ];
 
       rows.forEach(function(r) {
@@ -623,15 +328,17 @@
         box.appendChild(row);
       });
 
-      if (isValid) {
-        showAlert('success', 'SOS Alert triggered!', '"' + gesture + '" gesture detected. Emergency alert has been sent. Pattern: ' + (data.pattern || 'N/A'));
+      if (data.alert && data.alert.toLowerCase().indexOf('emergency') !== -1) {
+        showAlert('error', 'SOS Alert triggered!', '"' + gesture + '" detected. ' + data.status);
+      } else if (isValid) {
+        showAlert('success', 'Gesture recognised!', '"' + gesture + '" detected. ' + data.status);
       } else {
-        showAlert('error', 'Invalid gesture', '"' + gesture + '" is not a recognized SOS gesture. Try the wave gesture to trigger an emergency alert.');
+        showAlert('warning', 'Unknown gesture', '"' + gesture + '" is not recognised. Try wave, thumbsup, fist or peace.');
       }
     })
     .catch(function() {
       box.innerHTML = '<div style="font-size:13px;color:#A32D2D;">Could not reach the API at localhost:9090.<br>Make sure your Docker container is running.</div>';
-      showAlert('error', 'API unreachable', 'Cannot connect to http://localhost:9090/gesture. Ensure gesture-sos-container is running.');
+      showAlert('error', 'API unreachable', 'Cannot connect to localhost:9090. Ensure gesture-sos-container is running.');
     });
   }
 
@@ -646,6 +353,5 @@
     box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 </script>
-
 </body>
 </html>
