@@ -152,7 +152,3 @@ Add screenshots here:
 * User-friendly interface
 * Useful in dangerous situations
 
-
-
-Priyanka B
-Computer Science Engineering Student
