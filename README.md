@@ -97,7 +97,7 @@ Gesture-SOS-System/
 ## Clone Repository
 
 ```bash
-git clone https://github.com/your-username/Gesture-SOS-System.git
+git clone https://github.com/PriyankaB828/gesture-sos-system
 cd Gesture-SOS-System
 ```
 
