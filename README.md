@@ -134,9 +134,11 @@ http://localhost:9090
 ---
 
 # 📸 Screenshots
-<img width="1163" height="732" alt="UI Screenshot 1" src="https://github.com/user-attachments/assets/a47bc596-f459-49d4-98d4-9a4c1c931197" />
-<img width="1163" height="732" alt="UI Screenshot 2" src="https://github.com/user-attachments/assets/5202b882-ab16-4399-8967-484cd494bc11" />
+
 <img width="1350" height="893" alt="Jenkins Pipeline Screenshot" src="https://github.com/user-attachments/assets/44e6fbdb-bffb-4fca-bd04-e457662ca071" />
+<img width="1163" height="732" alt="UI Screenshot 1" src="https://github.com/user-attachments/assets/a47bc596-f459-49d4-98d4-9a4c1c931197" />
+<img width="920" height="924" alt="Screenshot 2026-04-04 123444" src="https://github.com/user-attachments/assets/428178ac-2eed-4e12-9a11-d38d01649138" />
+
 
 ---
 
